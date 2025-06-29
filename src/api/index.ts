@@ -34,8 +34,27 @@ export const typeDefs = gql`
     pronouns: String
   }
 
+  input PaginationInput {
+    page: Int = 1
+    limit: Int = 10
+  }
+
+  type PaginationInfo {
+    currentPage: Int!
+    totalPages: Int!
+    totalCount: Int!
+    limit: Int!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+  }
+
+  type AuthorsPage {
+    data: [Author!]!
+    pagination: PaginationInfo!
+  }
+
   type Query {
-    authors: [Author!]!
+    authors(pagination: PaginationInput): AuthorsPage!
     author(id: ID!): Author
   }
 
@@ -48,8 +67,22 @@ export const typeDefs = gql`
 export const resolvers = {
   Query: {
     authors: async (parent, args, context: Context) => {
-      // 🐞 Bug fix: Now fetching authors from the database!
-      return await db.listAuthors();
+      const pagination = args.pagination || {};
+      
+      // Validate pagination parameters
+      if (pagination.page !== undefined && pagination.page < 1) {
+        throw new Error('Page number must be greater than 0');
+      }
+      if (pagination.limit !== undefined && (pagination.limit < 1 || pagination.limit > 100)) {
+        throw new Error('Limit must be between 1 and 100');
+      }
+      
+      try {
+        return await db.listAuthors(pagination);
+      } catch (error) {
+        console.error('Error fetching authors:', error);
+        throw new Error('Failed to fetch authors');
+      }
     },
     author: async (parent, args, context: Context) => {
       // Input validation
