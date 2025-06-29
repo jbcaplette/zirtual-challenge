@@ -21,6 +21,7 @@ export const typeDefs = gql`
 
   type Query {
     authors: [Author!]!
+    author(id: ID!): Author
   }
 `;
 
@@ -29,6 +30,26 @@ export const resolvers = {
     authors: async (parent, args, context: Context) => {
       // 🐞 Bug fix: Now fetching authors from the database!
       return await db.listAuthors();
+    },
+    author: async (parent, args, context: Context) => {
+      // Input validation
+      if (!args.id) {
+        throw new Error('Author ID is required');
+      }
+      
+      // Sanitize and validate ID format (assuming numeric IDs)
+      const id = String(args.id).trim();
+      if (!/^\d+$/.test(id)) {
+        throw new Error('Invalid author ID format');
+      }
+      
+      try {
+        const author = await db.getAuthor(id);
+        return author || null; // Return null if not found (GraphQL standard)
+      } catch (error) {
+        console.error('Error fetching author:', error);
+        throw new Error('Failed to fetch author');
+      }
     },
   },
   Author: {
