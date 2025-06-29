@@ -105,7 +105,21 @@ The very simple schema we started with to list authors is now breaking, we need 
 Please provide your answers to the questions below:
 
 1. How long did you spend on this challenge?
+
+   - 1 hour
+
 2. How did you use AI in the challenge? For example, did you ask questions in an external tool (eg. ChatGPT)? Ask questions about the current codebase (eg. VSCode Copilot)? Utilize agentic tooling to write code (eg. Cursor, Windsurf, etc)?
+
+   - VS Code + Copilot - Claude Sonnet 4
+
 3. How familiar were you with libs and tools used in this challenge? (Typescript, GraphQL, Apollo, Axios, SQL, Knex, etc)
+
+   - Fairly familiar
+
 4. If you had more time, what would you add or change in the codebase?
+
+   - Additional validation with a library like ZOD, more test cases, caching, SQL optimization
+
 5. Do you have any constructive feedback that you would like to share with our team?
+
+   - The assessment was fun, I enjoyed it.
