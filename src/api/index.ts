@@ -20,9 +20,28 @@ export const typeDefs = gql`
     pronouns: String
   }
 
+  input CreateAuthorInput {
+    givenName: String!
+    familyName: String!
+    countryCode: String
+    pronouns: String
+  }
+
+  input UpdateAuthorInput {
+    givenName: String
+    familyName: String
+    countryCode: String
+    pronouns: String
+  }
+
   type Query {
     authors: [Author!]!
     author(id: ID!): Author
+  }
+
+  type Mutation {
+    createAuthor(input: CreateAuthorInput!): Author!
+    updateAuthor(id: ID!, input: UpdateAuthorInput!): Author
   }
 `;
 
@@ -50,6 +69,100 @@ export const resolvers = {
       } catch (error) {
         console.error('Error fetching author:', error);
         throw new Error('Failed to fetch author');
+      }
+    },
+  },
+  Mutation: {
+    createAuthor: async (parent, args, context: Context) => {
+      const { input } = args;
+      
+      // Input validation
+      if (!input.givenName?.trim()) {
+        throw new Error('Given name is required');
+      }
+      if (!input.familyName?.trim()) {
+        throw new Error('Family name is required');
+      }
+      
+      // Validate country code format if provided (2-letter ISO code)
+      if (input.countryCode && !/^[A-Z]{2}$/.test(input.countryCode)) {
+        throw new Error('Country code must be a 2-letter ISO code (e.g., "US", "JP")');
+      }
+      
+      try {
+        const authorData = {
+          givenName: input.givenName.trim(),
+          familyName: input.familyName.trim(),
+          countryCode: input.countryCode?.toUpperCase() || null,
+          pronouns: input.pronouns?.trim() || null,
+        };
+        
+        return await db.createAuthor(authorData);
+      } catch (error) {
+        console.error('Error creating author:', error);
+        throw new Error('Failed to create author');
+      }
+    },
+    updateAuthor: async (parent, args, context: Context) => {
+      const { id, input } = args;
+      
+      // Input validation
+      if (!id) {
+        throw new Error('Author ID is required');
+      }
+      
+      // Sanitize and validate ID format
+      const authorId = String(id).trim();
+      if (!/^\d+$/.test(authorId)) {
+        throw new Error('Invalid author ID format');
+      }
+      
+      // Validate country code format if provided
+      if (input.countryCode && !/^[A-Z]{2}$/.test(input.countryCode)) {
+        throw new Error('Country code must be a 2-letter ISO code (e.g., "US", "JP")');
+      }
+      
+      // Check if author exists
+      const existingAuthor = await db.getAuthor(authorId);
+      if (!existingAuthor) {
+        throw new Error('Author not found');
+      }
+      
+      try {
+        // Build update data object with only provided fields
+        const updateData: any = {};
+        
+        if (input.givenName !== undefined) {
+          if (!input.givenName?.trim()) {
+            throw new Error('Given name cannot be empty');
+          }
+          updateData.givenName = input.givenName.trim();
+        }
+        
+        if (input.familyName !== undefined) {
+          if (!input.familyName?.trim()) {
+            throw new Error('Family name cannot be empty');
+          }
+          updateData.familyName = input.familyName.trim();
+        }
+        
+        if (input.countryCode !== undefined) {
+          updateData.countryCode = input.countryCode?.toUpperCase() || null;
+        }
+        
+        if (input.pronouns !== undefined) {
+          updateData.pronouns = input.pronouns?.trim() || null;
+        }
+        
+        // Only update if there are changes
+        if (Object.keys(updateData).length === 0) {
+          return existingAuthor; // No changes to apply
+        }
+        
+        return await db.updateAuthor(authorId, updateData);
+      } catch (error) {
+        console.error('Error updating author:', error);
+        throw new Error('Failed to update author');
       }
     },
   },

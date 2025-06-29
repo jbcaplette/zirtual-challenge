@@ -24,6 +24,21 @@ export class Db {
   public getAuthor(id: string) {
     return this.knex.table<Author>("authors").where("id", id).first();
   }
+
+  public async createAuthor(authorData: Omit<Author, 'id'>): Promise<Author> {
+    const [createdAuthor] = await this.knex.table<Author>("authors")
+      .insert(authorData)
+      .returning("*");
+    return createdAuthor;
+  }
+
+  public async updateAuthor(id: string, authorData: Partial<Omit<Author, 'id'>>): Promise<Author | null> {
+    const [updatedAuthor] = await this.knex.table<Author>("authors")
+      .where("id", id)
+      .update(authorData)
+      .returning("*");
+    return updatedAuthor || null;
+  }
 }
 
 export default new Db();
