@@ -7,6 +7,9 @@ import { Context } from "../types";
 import db from "../db";
 import Countries from "../lib/Countries";
 
+// Countries that use family-name-first naming convention
+const FAMILY_NAME_FIRST_COUNTRIES = ['JP']; // Japan - can add more countries like 'KR', 'CN', 'VN', etc.
+
 export const typeDefs = gql`
   type Author {
     id: ID!
@@ -44,6 +47,12 @@ export const resolvers = {
         return givenName;
       }
       
+      // Japanese naming convention: Family name comes first
+      if (parent.countryCode && FAMILY_NAME_FIRST_COUNTRIES.includes(parent.countryCode)) {
+        return `${familyName} ${givenName}`;
+      }
+      
+      // Default naming convention: Given name first
       return `${givenName} ${familyName}`;
     },
     countryName: async (parent) => {
