@@ -11,6 +11,7 @@ export const typeDefs = gql`
     id: ID!
     givenName: String!
     familyName: String!
+    displayName: String!
   }
 
   type Query {
@@ -23,6 +24,25 @@ export const resolvers = {
     authors: async (parent, args, context: Context) => {
       // 🐞 Bug fix: Now fetching authors from the database!
       return await db.listAuthors();
+    },
+  },
+  Author: {
+    displayName: (parent) => {
+      const givenName = parent.givenName?.trim() || '';
+      const familyName = parent.familyName?.trim() || '';
+      
+      // Handle case where one or both names might be empty
+      if (!givenName && !familyName) {
+        return 'Unknown Author';
+      }
+      if (!givenName) {
+        return familyName;
+      }
+      if (!familyName) {
+        return givenName;
+      }
+      
+      return `${givenName} ${familyName}`;
     },
   },
 };
