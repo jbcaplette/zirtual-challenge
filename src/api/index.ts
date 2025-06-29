@@ -17,6 +17,7 @@ export const typeDefs = gql`
     familyName: String!
     displayName: String!
     countryName: String
+    pronouns: String
   }
 
   type Query {
