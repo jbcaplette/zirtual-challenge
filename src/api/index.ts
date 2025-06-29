@@ -5,6 +5,7 @@
 import { gql } from "graphql-tag";
 import { Context } from "../types";
 import db from "../db";
+import Countries from "../lib/Countries";
 
 export const typeDefs = gql`
   type Author {
@@ -12,6 +13,7 @@ export const typeDefs = gql`
     givenName: String!
     familyName: String!
     displayName: String!
+    countryName: String
   }
 
   type Query {
@@ -43,6 +45,10 @@ export const resolvers = {
       }
       
       return `${givenName} ${familyName}`;
+    },
+    countryName: async (parent) => {
+      const countries = new Countries();
+      return await countries.getCountryName(parent.countryCode);
     },
   },
 };
